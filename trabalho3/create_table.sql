@@ -1,221 +1,256 @@
-CREATE TABLE IF NOT EXISTS CIRCUITS (
-    circuit_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    circuit_ref VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    country VARCHAR(255) NOT NULL,
-    lat FLOAT NOT NULL,
-    lng FLOAT NOT NULL,
-    alt INT NOT NULL,
-    url VARCHAR(255) NOT NULL
-);
 
-/* circuit_ref = circuit id (circuits)
-altitude: buscar no geocities*/
 
 CREATE TABLE IF NOT EXISTS CONSTRUCTORS (
-    constructor_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    constructor_ref VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
+    constructor_id INT GENERATED ALWAYS AS IDENTITY,
+    constructor_ref VARCHAR(255) NOT NULL UNIQUE,
+    constructor_name VARCHAR(255) NOT NULL,
     nationality VARCHAR(255) NOT NULL,
-    url VARCHAR(255) NOT NULL
+    contructor_url VARCHAR(255) NOT NULL,
+    PRIMARY KEY (constructor_id)
 );
 
-/*.  constructor_ref = constructor_id (constructor)*/
+
 
 CREATE TABLE IF NOT EXISTS DRIVERS (
-    driver_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    driver_ref VARCHAR(255) NOT NULL,
-    number INT,
-    code VARCHAR(255),
-    forename VARCHAR(255) NOT NULL,
-    surname VARCHAR(255) NOT NULL,
-    dob  DATE NOT NULL,
+    driver_id INT GENERATED ALWAYS AS IDENTITY,
+    driver_ref VARCHAR(255) NOT NULL UNIQUE,
+    given_name VARCHAR(255) NOT NULL,
+    family_name VARCHAR(255) NOT NULL,
+    date_of_birth  DATE NOT NULL,
     nationality VARCHAR(255) NOT NULL,
-    url VARCHAR(255) NOT NULL
+    PRIMARY KEY (driver_id)
 ); 
 
-/* id, ref, forename, surname, doc, nationality -> drivers
-   resto -> f1_2025_last_race_results */
+
 
 CREATE TABLE IF NOT EXISTS SEASONS (
-    year INT PRIMARY KEY,
-    url VARCHAR(255) NOT NULL
+    season_id INT GENERATED ALWAYS AS IDENTITY,
+    season_year INT NOT NULL UNIQUE,
+    PRIMARY KEY (season_id)
 );
 
-/*tabela nao existe -> pegar unique de races */
+
+  
+
+
+/*tem tudo até points, depois tem que pegar em last_results lap speed ->n tem, e acho q tbm nao temos o tamanho do circuito */
+
+CREATE TABLE IF NOT EXISTS RACESTATUS (
+    status_id INT GENERATED ALWAYS AS IDENTITY,
+    status_text VARCHAR(255) NOT NULL UNIQUE,
+    PRIMARY KEY (status_id)
+);
+
+
+CREATE TABLE IF NOT EXISTS STANDINGS (
+    standings_id INT GENERATED ALWAYS AS IDENTITY,
+    season_id INT NOT NULL,
+    round INT NOT NULL,
+    position INT NOT NULL,
+    points FLOAT NOT NULL,
+    wins INT NOT NULL,
+    PRIMARY KEY (standings_id),
+    FOREIGN KEY (season_id) REFERENCES SEASONS(season_id)
+);
+
+
+
+CREATE TABLE IF NOT EXISTS CONTINENTS (
+    continent_id INT GENERATED ALWAYS AS IDENTITY,
+    continent_code VARCHAR(255) NOT NULL UNIQUE,
+    continent_name VARCHAR(255) NOT NULL UNIQUE,
+    PRIMARY KEY (continent_id)
+);
+
+CREATE TABLE IF NOT EXISTS COUNTRIES (
+    country_id INT GENERATED ALWAYS AS IDENTITY,
+    code VARCHAR(255) NOT NULL UNIQUE,
+    country_name VARCHAR(255) NOT NULL UNIQUE,
+    continent_id INT NOT NULL,
+    wikipedia_link VARCHAR(255),
+    keywords VARCHAR(255),
+    PRIMARY KEY (country_id),
+    FOREIGN KEY (continent_id) REFERENCES CONTINENTS(continent_id)  
+);
+
+
+
+CREATE TABLE IF NOT EXISTS TIMEZONES (
+    timezone_id INT GENERATED ALWAYS AS IDENTITY,
+    timezone_name VARCHAR(255) NOT NULL UNIQUE,
+    gmt_offset FLOAT NOT NULL,
+    dst_offset FLOAT NOT NULL,
+    raw_offset FLOAT NOT NULL,
+    PRIMARY KEY (timezone_id)
+);
+
+CREATE TABLE IF NOT EXISTS LANGUAGENAMES (
+    language_id INT GENERATED ALWAYS AS IDENTITY,
+    language_name VARCHAR(255) NOT NULL UNIQUE,
+    PRIMARY KEY (language_id)
+);
+
+CREATE TABLE IF NOT EXISTS ISOLANGUAGECODES (
+    isolanguage_id INT GENERATED ALWAYS AS IDENTITY,
+    iso_639_3 VARCHAR(255) NOT NULL UNIQUE,
+    iso_639_2 VARCHAR(255) NOT NULL UNIQUE,
+    iso_639_1 VARCHAR(255) NOT NULL UNIQUE,
+    language_id INT NOT NULL,
+    PRIMARY KEY (isolanguage_id),
+    FOREIGN KEY (language_id) REFERENCES LANGUAGENAMES(language_id)
+);
+
+
+CREATE TABLE IF NOT EXISTS COUNTRYLANGUAGES (
+    country_id INT NOT NULL,
+    language_id INT NOT NULL,
+    PRIMARY KEY (country_id, language_id),
+    FOREIGN KEY (country_id) REFERENCES COUNTRIES(country_id),
+    FOREIGN KEY (language_id) REFERENCES LANGUAGENAMES(language_id)
+);
+
+
+
+CREATE TABLE IF NOT EXISTS FEATURECODES (
+    featurecode_id INT GENERATED ALWAYS AS IDENTITY,
+    featurecode VARCHAR(255) NOT NULL UNIQUE,
+    featureclass VARCHAR(255) NOT NULL,
+    featurename VARCHAR(255) NOT NULL,
+    featuredescription VARCHAR(255) NOT NULL,
+    PRIMARY KEY (featurecode_id)
+);
+
+CREATE TABLE IF NOT EXISTS CITIES (
+    city_id INT GENERATED ALWAYS AS IDENTITY,
+    city_name VARCHAR(255) NOT NULL,
+    city_ascii_name VARCHAR(255) NOT NULL,
+    city_alternate_names VARCHAR(255) NOT NULL,
+    latitude FLOAT NOT NULL,
+    longitude FLOAT NOT NULL,
+    featurecode_id INT NOT NULL,
+    country_id VARCHAR(255) NOT NULL,
+    timezone_id INT NOT NULL,
+    cc2 VARCHAR(255) NOT NULL,
+    admin1_code VARCHAR(255) NOT NULL,
+    admin2_code VARCHAR(255) NOT NULL,
+    admin3_code VARCHAR(255) NOT NULL,
+    admin4_code VARCHAR(255) NOT NULL,
+    city_population INT NOT NULL,
+    city_levation INT NOT NULL,
+    city_dem INT NOT NULL,
+    modification_date DATE NOT NULL,
+    PRIMARY KEY (city_id),
+    FOREIGN KEY (featurecode_id) REFERENCES FEATURECODES(featurecode_id),
+    FOREIGN KEY (country_id) REFERENCES COUNTRIES(code),
+    FOREIGN KEY (timezone_id) REFERENCES TIMEZONES(timezone_id)
+);
+
+CREATE TABLE IF NOT EXISTS CIRCUITS (
+    circuit_id INT GENERATED ALWAYS AS IDENTITY,
+    circuit_ref VARCHAR(255) NOT NULL UNIQUE,
+    circuit_name VARCHAR(255) NOT NULL,
+    circuit_lat FLOAT,
+    circuit_lng FLOAT,
+    circuit_city_id INT NOT NULL,
+    circuit_url VARCHAR(255) NOT NULL,
+    PRIMARY KEY (circuit_id),
+    FOREIGN KEY (circuit_city_id) REFERENCES CITIES(city_id)
+);
 
 CREATE TABLE IF NOT EXISTS RACES (
-    race_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    race_ref VARCHAR(255) NOT NULL,
-    year INT NOT NULL,
-    round INT NOT NULL,
+    race_id INT GENERATED ALWAYS AS IDENTITY,
+    race_ref VARCHAR(255) NOT NULL UNIQUE,
+    season_id INT NOT NULL,
     circuit_id INT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    date DATE NOT NULL,
-    time VARCHAR(255) NOT NULL,
-    url VARCHAR(255) NOT NULL,
+    round INT NOT NULL,
+    race_name VARCHAR(255) NOT NULL,
+    race_date DATE NOT NULL,
+    race_time VARCHAR(255) NOT NULL,
+    PRIMARY KEY (race_id),
     FOREIGN KEY (circuit_id) REFERENCES CIRCUITS(circuit_id),
-    FOREIGN KEY (year) REFERENCES SEASONS(year)
+    FOREIGN KEY (season_id) REFERENCES SEASONS(season_id)
 );
-
-/* race_ref = race id (races)
-url -> nao achei em outras tabelas */
-
-CREATE TABLE IF NOT EXISTS DRIVERSTANDINGS (
-    driver_standings_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    race_id INT NOT NULL,
-    driver_id INT NOT NULL,
-    points FLOAT NOT NULL,
-    position INT NOT NULL,
-    position_text VARCHAR(255) NOT NULL,
-    wins INT NOT NULL,
-    FOREIGN KEY (race_id) REFERENCES RACES(race_id),
-    FOREIGN KEY (driver_id) REFERENCES DRIVERS(driver_id)
-);
-
-/*nao tem race_id, n sei como achar tbm*/
-
-CREATE TABLE IF NOT EXISTS LAPTIMES (
-    race_id INT NOT NULL,
-    driver_id INT NOT NULL,
-    lap INT NOT NULL,
-    position INT NOT NULL,
-    time VARCHAR(255) NOT NULL,
-    millis INT NOT NULL,
-    PRIMARY KEY (race_id, driver_id, lap),
-    FOREIGN KEY (race_id) REFERENCES RACES(race_id),
-    FOREIGN KEY (driver_id) REFERENCES DRIVERS(driver_id)
-);
-
-/* não achei a tabela nem as informações*/
-
-CREATE TABLE IF NOT EXISTS PITSTOPS (
-    race_id INT NOT NULL,
-    driver_id INT NOT NULL,
-    stop INT NOT NULL,
-    lap INT NOT NULL,
-    time VARCHAR(255) NOT NULL,
-    duration VARCHAR(255) NOT NULL,
-    millis INT NOT NULL,
-    PRIMARY KEY (race_id, driver_id, stop),
-    FOREIGN KEY (race_id) REFERENCES RACES(race_id),
-    FOREIGN KEY (driver_id) REFERENCES DRIVERS(driver_id)
-);
-
-/*também não achei a tabela nem as informações*/
 
 CREATE TABLE IF NOT EXISTS QUALIFYING (
-    qualify_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
+    qualify_id INT GENERATED ALWAYS AS IDENTITY,
     race_id INT NOT NULL,
     driver_id INT NOT NULL,
     constructor_id INT NOT NULL,
-    number INT NOT NULL,
     position INT NOT NULL,
     Q1 VARCHAR(255) NOT NULL,
     Q2 VARCHAR(255) NOT NULL,
     Q3 VARCHAR(255) NOT NULL,
+    PRIMARY KEY (qualify_id),
     FOREIGN KEY (race_id) REFERENCES RACES(race_id),
     FOREIGN KEY (driver_id) REFERENCES DRIVERS(driver_id),
     FOREIGN KEY (constructor_id) REFERENCES CONSTRUCTORS(constructor_id)
 );
 
-/*na tabela tem as refs, mas conseguimos constuir puxando das outras tabelas
-não tem number, mas podemos esclarescer se é um auto-increment*/
-
-CREATE TABLE IF NOT EXISTS STATUS (
-    status_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    status_text VARCHAR(255) NOT NULL
-);
-
-/*nao existe mas de novo, só colocar as uniques da tabela result*/
-
-
-
 CREATE TABLE IF NOT EXISTS RESULTS (
-    result_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    result_id INT GENERATED ALWAYS AS IDENTITY,
     race_id INT NOT NULL,
     driver_id INT NOT NULL,
     constructor_id INT NOT NULL,
-    number INT NOT NULL,
     grid INT NOT NULL,
     position INT NOT NULL,
-    position_text VARCHAR(255) NOT NULL,
     position_order INT NOT NULL,
     points FLOAT NOT NULL,
     laps   INT NOT NULL,
-    time VARCHAR(255) NOT NULL,
-    millis INT NOT NULL,
-    fastest_lap INT NOT NULL,
-    rank INT NOT NULL,
-    fastest_lap_time VARCHAR(255) NOT NULL,
-    fastest_lap_speed VARCHAR(255) NOT NULL,
     status_id INT NOT NULL,
+    PRIMARY KEY (result_id),
     FOREIGN KEY (race_id) REFERENCES RACES(race_id),
     FOREIGN KEY (driver_id) REFERENCES DRIVERS(driver_id),
     FOREIGN KEY (constructor_id) REFERENCES CONSTRUCTORS(constructor_id),
-    FOREIGN KEY (status_id) REFERENCES STATUS(status_id)
-);  
+    FOREIGN KEY (status_id) REFERENCES RACESTATUS(status_id)
+);
+
+CREATE TABLE IF NOT EXISTS DRIVERSTANDINGS (
+    standings_id INT NOT NULL,
+    driver_id INT NOT NULL,
+    PRIMARY KEY (standings_id, driver_id),
+    FOREIGN KEY (standings_id) REFERENCES STANDINGS(standings_id),
+    FOREIGN KEY (driver_id) REFERENCES DRIVERS(driver_id)
+);
 
 
-/*tem tudo até points, depois tem que pegar em last_results lap speed ->n tem, e acho q tbm nao temos o tamanho do circuito */
+CREATE TABLE IF NOT EXISTS CONSTRUCTORSTANDINGS (
+    standings_id INT NOT NULL,
+    constructor_id INT NOT NULL,
+    PRIMARY KEY (standings_id, constructor_id),
+    FOREIGN KEY (standings_id) REFERENCES STANDINGS(standings_id),
+    FOREIGN KEY (constructor_id) REFERENCES CONSTRUCTORS(constructor_id)
+);
+
+
+CREATE TABLE IF NOT EXISTS AIRPORTTYPES(
+    airporttype_id INT GENERATED ALWAYS AS IDENTITY,
+    airporttype VARCHAR(255) NOT NULL UNIQUE,
+    PRIMARY KEY (airporttype_id)
+);
+
+
 
 CREATE TABLE IF NOT EXISTS AIRPORTS (
-    airport_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    airport_identifier VARCHAR(255) NOT NULL,
-    type VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
+    airport_id INT GENERATED ALWAYS AS IDENTITY,
+    airport_identifier VARCHAR(255) NOT NULL UNIQUE,
+    airporttype_id INT NOT NULL,
+    airport_name VARCHAR(255) NOT NULL,
     lat_deg FLOAT NOT NULL,
     long_deg  FLOAT NOT NULL,
     elev_ft INT NOT NULL,
-    continent VARCHAR(255) NOT NULL,
-    ISOCountry VARCHAR(255) NOT NULL,
-    ISORegion VARCHAR(255) NOT NULL,
-    City VARCHAR(255) NOT NULL,
-    ScheduledService VARCHAR(255) NOT NULL,
-    GPSCode VARCHAR(255) NOT NULL,
-    IATACode VARCHAR(255) NOT NULL,
-    LocalCode VARCHAR(255) NOT NULL,
-    HomeLink VARCHAR(255) NOT NULL,
-    WikipediaLink VARCHAR(255) NOT NULL,
-    Keywords VARCHAR(255) NOT NULL
+    city_id INT NOT NULL,
+    scheduled_service VARCHAR(255) NOT NULL,
+    GPS_code VARCHAR(255) NOT NULL,
+    IATA_code VARCHAR(255) NOT NULL,
+    ICAO_code VARCHAR(255) NOT NULL,
+    local_code VARCHAR(255) NOT NULL,
+    home_link VARCHAR(255),
+    wikipedia_link VARCHAR(255),
+    keywords VARCHAR(255),
+    PRIMARY KEY (airport_id),
+    FOREIGN KEY (airporttype_id) REFERENCES AIRPORTTYPES(airporttype_id),
+    FOREIGN KEY (city_id) REFERENCES CITIES(city_id)
 );
 
-/*tudo ok*/
 
-CREATE TABLE IF NOT EXISTS COUNTRIES (
-    country_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    code VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    continent VARCHAR(255) NOT NULL,
-    wikipedia_link VARCHAR(255) NOT NULL,
-    keywords VARCHAR(255) NOT NULL
-);
-
-/*tudo certo*/
-
-
-CREATE TABLE IF NOT EXISTS GEOCITIES15K (
-    GeoCityID INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    Asciiname VARCHAR(255) NOT NULL,
-    Alternatenames VARCHAR(255) NOT NULL,
-    Latitude FLOAT NOT NULL,
-    Longitude FLOAT NOT NULL,
-    FeatureClass VARCHAR(255) NOT NULL,
-    FeatureCode VARCHAR(255) NOT NULL,
-    CountryCode VARCHAR(255) NOT NULL,
-    CC2 VARCHAR(255) NOT NULL,
-    Admin1Code VARCHAR(255) NOT NULL,
-    Admin2Code VARCHAR(255) NOT NULL,
-    Admin3Code VARCHAR(255) NOT NULL,
-    Admin4Code VARCHAR(255) NOT NULL,
-    Population INT NOT NULL,
-    Elevation INT NOT NULL,
-    Dem INT NOT NULL,
-    Timezone VARCHAR(255) NOT NULL,
-    ModificationDate DATE NOT NULL
-);
-
-/*o cities ta sem header!! tentei entrar no site mas ta organizado por pais kkkk */
 
