@@ -332,7 +332,7 @@ JOIN LANGUAGENAMES ln ON ln.language_name = s.language_name
 ON CONFLICT DO NOTHING;
 
 -- 8. CONSTRUCTORS
-INSERT INTO CONSTRUCTORS (constructor_ref, constructor_name, nationality, contructor_url)
+INSERT INTO CONSTRUCTORS (constructor_ref, constructor_name, nationality, constructor_url)
 SELECT
     constructor_ref,
     constructor_name,
@@ -352,3 +352,54 @@ SELECT
     nationality
 FROM stg_drivers
 ON CONFLICT DO NOTHING;
+
+-- 10. SEASONS
+-- Derivadas dos anos únicos presentes em races.csv.
+INSERT INTO SEASONS (season_year)
+SELECT DISTINCT CAST(season_year AS INT)
+FROM stg_races
+WHERE season_year ~ '^\d+$'
+ON CONFLICT DO NOTHING;
+
+-- 11. RACESTATUS
+-- Derivados dos valores únicos de status em results.csv.
+INSERT INTO RACESTATUS (status_text)
+SELECT DISTINCT status_text
+FROM stg_results
+WHERE status_text <> ''
+ON CONFLICT DO NOTHING;
+
+-- 12. CIRCUITS
+-- circuit_city_id: busca pelo nome da localidade (locality) + país,
+-- com fallback para a cidade mais próxima por coordenada.
+INSERT INTO CIRCUITS (circuit_ref, circuit_name, circuit_lat, circuit_lng, circuit_city_id, circuit_url)
+SELECT
+    s.circuit_ref,
+    s.circuit_name,
+    CAST(s.lat AS FLOAT),
+    CAST(s.lng AS FLOAT),
+    COALESCE(
+        -- 1ª tentativa: cidade com nome igual à localidade do circuito
+        (
+            SELECT ci.city_id FROM CITIES ci
+            JOIN COUNTRIES co ON co.country_id = ci.country_id
+            WHERE (ci.city_name ILIKE s.locality OR ci.city_ascii_name ILIKE s.locality)
+              AND co.country_name ILIKE s.country
+            LIMIT 1
+        ),
+        -- 2ª tentativa: cidade mais próxima por coordenada geográfica
+        (
+            SELECT city_id FROM CITIES
+            ORDER BY ABS(latitude  - CAST(s.lat AS FLOAT))
+                   + ABS(longitude - CAST(s.lng AS FLOAT))
+            LIMIT 1
+        )
+    ),
+    NULLIF(s.wikipedia_url, '')
+FROM stg_circuits s
+WHERE s.circuit_ref <> ''
+  AND s.lat <> ''
+  AND s.lng <> ''
+ON CONFLICT DO NOTHING;
+
+

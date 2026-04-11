@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS CONSTRUCTORS (
     constructor_ref VARCHAR(255) NOT NULL UNIQUE,
     constructor_name VARCHAR(255) NOT NULL,
     nationality VARCHAR(255) NOT NULL,
-    contructor_url VARCHAR(255),
+    constructor_url VARCHAR(255),
     PRIMARY KEY (constructor_id)
 );
 
@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS CIRCUITS (
     circuit_lat FLOAT,
     circuit_lng FLOAT,
     circuit_city_id INT NOT NULL,
-    circuit_url VARCHAR(255) NOT NULL,
+    circuit_url VARCHAR(255),
     PRIMARY KEY (circuit_id),
     FOREIGN KEY (circuit_city_id) REFERENCES CITIES(city_id)
 );
@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS RACES (
     round INT NOT NULL,
     race_name VARCHAR(255) NOT NULL,
     race_date DATE NOT NULL,
-    race_time VARCHAR(255),
+    race_time TIME,
     PRIMARY KEY (race_id),
     FOREIGN KEY (circuit_id) REFERENCES CIRCUITS(circuit_id),
     FOREIGN KEY (season_id) REFERENCES SEASONS(season_id)
