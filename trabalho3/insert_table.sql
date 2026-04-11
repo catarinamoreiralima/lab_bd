@@ -460,3 +460,13 @@ JOIN CONSTRUCTORS c  ON c.constructor_ref = s.constructor_ref
 JOIN RACESTATUS   st ON st.status_text    = s.status_text
 WHERE s.race_ref <> ''
 ON CONFLICT DO NOTHING;
+
+
+-- 16. AIRPORTTYPES
+-- Derivados dos valores únicos da coluna type em airports.csv.
+INSERT INTO AIRPORTTYPES (airporttype)
+SELECT DISTINCT type
+FROM stg_airports
+WHERE type <> ''
+ON CONFLICT DO NOTHING;
+

@@ -238,7 +238,7 @@ CREATE TABLE IF NOT EXISTS AIRPORTS (
     lat_deg FLOAT NOT NULL,
     long_deg  FLOAT NOT NULL,
     elev_ft INT NOT NULL,
-    city_id INT NOT NULL,
+    city_id INT,
     scheduled_service VARCHAR(255) NOT NULL,
     GPS_code VARCHAR(255),
     IATA_code VARCHAR(255),
