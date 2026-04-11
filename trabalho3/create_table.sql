@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS CONSTRUCTORS (
     constructor_ref VARCHAR(255) NOT NULL UNIQUE,
     constructor_name VARCHAR(255) NOT NULL,
     nationality VARCHAR(255) NOT NULL,
-    contructor_url VARCHAR(255) NOT NULL,
+    contructor_url VARCHAR(255),
     PRIMARY KEY (constructor_id)
 );
 
@@ -92,9 +92,9 @@ CREATE TABLE IF NOT EXISTS LANGUAGENAMES (
 
 CREATE TABLE IF NOT EXISTS ISOLANGUAGECODES (
     isolanguage_id INT GENERATED ALWAYS AS IDENTITY,
-    iso_639_3 VARCHAR(255) NOT NULL UNIQUE,
-    iso_639_2 VARCHAR(255) NOT NULL UNIQUE,
-    iso_639_1 VARCHAR(255) NOT NULL UNIQUE,
+    iso_639_3 VARCHAR(255) UNIQUE,
+    iso_639_2 VARCHAR(255) UNIQUE,
+    iso_639_1 VARCHAR(255) UNIQUE,
     language_id INT NOT NULL,
     PRIMARY KEY (isolanguage_id),
     FOREIGN KEY (language_id) REFERENCES LANGUAGENAMES(language_id)
@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS FEATURECODES (
     featurecode VARCHAR(255) NOT NULL UNIQUE,
     featureclass VARCHAR(255) NOT NULL,
     featurename VARCHAR(255) NOT NULL,
-    featuredescription VARCHAR(255) NOT NULL,
+    featuredescription VARCHAR(255),
     PRIMARY KEY (featurecode_id)
 );
 
@@ -130,11 +130,11 @@ CREATE TABLE IF NOT EXISTS CITIES (
     featurecode_id INT NOT NULL,
     country_id VARCHAR(255) NOT NULL,
     timezone_id INT NOT NULL,
-    cc2 VARCHAR(255) NOT NULL,
-    admin1_code VARCHAR(255) NOT NULL,
-    admin2_code VARCHAR(255) NOT NULL,
-    admin3_code VARCHAR(255) NOT NULL,
-    admin4_code VARCHAR(255) NOT NULL,
+    cc2 VARCHAR(255),
+    admin1_code VARCHAR(255),
+    admin2_code VARCHAR(255),
+    admin3_code VARCHAR(255),
+    admin4_code VARCHAR(255),
     city_population INT NOT NULL,
     city_levation INT NOT NULL,
     city_dem INT NOT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS RACES (
     round INT NOT NULL,
     race_name VARCHAR(255) NOT NULL,
     race_date DATE NOT NULL,
-    race_time VARCHAR(255) NOT NULL,
+    race_time VARCHAR(255),
     PRIMARY KEY (race_id),
     FOREIGN KEY (circuit_id) REFERENCES CIRCUITS(circuit_id),
     FOREIGN KEY (season_id) REFERENCES SEASONS(season_id)
@@ -178,8 +178,8 @@ CREATE TABLE IF NOT EXISTS QUALIFYING (
     constructor_id INT NOT NULL,
     position INT NOT NULL,
     Q1 VARCHAR(255) NOT NULL,
-    Q2 VARCHAR(255) NOT NULL,
-    Q3 VARCHAR(255) NOT NULL,
+    Q2 VARCHAR(255),
+    Q3 VARCHAR(255),
     PRIMARY KEY (qualify_id),
     FOREIGN KEY (race_id) REFERENCES RACES(race_id),
     FOREIGN KEY (driver_id) REFERENCES DRIVERS(driver_id),
@@ -240,10 +240,10 @@ CREATE TABLE IF NOT EXISTS AIRPORTS (
     elev_ft INT NOT NULL,
     city_id INT NOT NULL,
     scheduled_service VARCHAR(255) NOT NULL,
-    GPS_code VARCHAR(255) NOT NULL,
-    IATA_code VARCHAR(255) NOT NULL,
-    ICAO_code VARCHAR(255) NOT NULL,
-    local_code VARCHAR(255) NOT NULL,
+    GPS_code VARCHAR(255),
+    IATA_code VARCHAR(255),
+    ICAO_code VARCHAR(255),
+    local_code VARCHAR(255),
     home_link VARCHAR(255),
     wikipedia_link VARCHAR(255),
     keywords VARCHAR(255),
