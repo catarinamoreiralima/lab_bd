@@ -13,10 +13,10 @@ CREATE TABLE IF NOT EXISTS CONSTRUCTORS (
 
 CREATE TABLE IF NOT EXISTS DRIVERS (
     driver_id INT GENERATED ALWAYS AS IDENTITY,
-    driver_ref VARCHAR(255) NOT NULL UNIQUE,
+    driver_ref VARCHAR(255) UNIQUE,
     given_name VARCHAR(255) NOT NULL,
     family_name VARCHAR(255) NOT NULL,
-    date_of_birth  DATE NOT NULL,
+    date_of_birth  DATE,
     nationality VARCHAR(255) NOT NULL,
     PRIMARY KEY (driver_id)
 ); 

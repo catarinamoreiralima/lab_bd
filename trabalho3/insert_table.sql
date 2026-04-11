@@ -337,7 +337,18 @@ SELECT
     constructor_ref,
     constructor_name,
     nationality,
-    NULLIF(wikipedia_url, ''),
+    NULLIF(wikipedia_url, '')
 FROM stg_constructors
 WHERE constructor_ref <> ''
+ON CONFLICT DO NOTHING;
+
+-- 9. DRIVERS
+INSERT INTO DRIVERS (driver_ref, given_name, family_name, date_of_birth, nationality)
+SELECT
+    driver_ref,
+    given_name,
+    family_name,
+    CAST(date_of_birth AS DATE),
+    nationality
+FROM stg_drivers
 ON CONFLICT DO NOTHING;
