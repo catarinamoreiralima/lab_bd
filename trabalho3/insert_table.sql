@@ -207,17 +207,28 @@ ON CONFLICT DO NOTHING;
 
 -- 2. COUNTRIES
 \echo "Inserting COUNTRIES..."
-INSERT INTO COUNTRIES (code, country_name, continent_id, wikipedia_link, keywords)
+-- 2. COUNTRIES (sem keywords)
+INSERT INTO COUNTRIES (code, country_name, continent_id, wikipedia_link)
 SELECT
     s.code,
     s.name,
     c.continent_id,
-    NULLIF(s.wikipedia_link, ''),
-    NULLIF(s.keywords, '')
+    NULLIF(s.wikipedia_link, '')
 FROM stg_countries s
 JOIN CONTINENTS c ON c.continent_code = s.continent
 WHERE s.code <> ''
 ON CONFLICT DO NOTHING;
+
+-- 2b. COUNTRY_KEYWORDS
+INSERT INTO COUNTRY_KEYWORDS (country_id, keyword)
+SELECT
+    co.country_id,
+    TRIM(keyword) AS keyword
+FROM stg_countries s
+JOIN COUNTRIES co ON co.code = s.code
+CROSS JOIN LATERAL unnest(string_to_array(s.keywords, ',')) AS keyword
+WHERE s.keywords <> ''
+  AND TRIM(keyword) <> '';
 
 -- 3. TIMEZONES
 \echo "Inserting TIMEZONES..."
@@ -275,6 +286,17 @@ LEFT JOIN FEATURECODES fc ON fc.featurecode  = s.feature_code
                           AND fc.featureclass = s.feature_class
 LEFT JOIN COUNTRIES    co ON co.code          = s.country_code
 LEFT JOIN TIMEZONES    tz ON tz.timezone_name = s.timezone_name;
+
+INSERT INTO CITY_ALTERNATE_NAMES (city_id, alternate_name)
+SELECT
+    ci.city_id,
+    TRIM(alt_name) AS alternate_name
+FROM stg_cities s
+JOIN CITIES ci ON ci.city_ascii_name = s.city_ascii_name
+               AND ci.modification_date = CAST(s.modification_date AS DATE)
+CROSS JOIN LATERAL unnest(string_to_array(s.city_alternate_names, ',')) AS alt_name
+WHERE s.city_alternate_names <> ''
+  AND TRIM(alt_name) <> '';
 
 -- 6. LANGUAGENAMES
 \echo "Inserting LANGUAGENAMES..."
