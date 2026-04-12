@@ -388,6 +388,79 @@ WHERE s.circuit_ref <> ''
 ON CONFLICT DO NOTHING;
 
 
+
+-- 13. RACES
+\echo "Inserting RACES..."
+INSERT INTO RACES (race_ref, season_id, circuit_id, round, race_name, race_date, race_time)
+SELECT
+    s.race_ref,
+    se.season_id,
+    ci.circuit_id,
+    CAST(s.round AS INT),
+    s.race_name,
+    CAST(s.race_date AS DATE),
+    CAST(s.race_time AS TIME)
+FROM stg_races s
+JOIN SEASONS  se ON se.season_year = CAST(s.season_year AS INT)
+JOIN CIRCUITS ci ON ci.circuit_ref = s.circuit_ref
+WHERE s.race_ref  <> ''
+  AND s.race_date <> ''
+ON CONFLICT DO NOTHING;
+
+-- 14. QUALIFYING
+\echo "Inserting QUALIFYING..."
+INSERT INTO QUALIFYING (race_id, driver_id, constructor_id, position, Q1, Q2, Q3)
+SELECT
+    r.race_id,
+    d.driver_id,
+    c.constructor_id,
+    CAST(NULLIF(s.position, '') AS INT),
+    s.q1,
+    s.q2,
+    s.q3
+FROM stg_qualifying s
+JOIN RACES        r ON r.race_ref        = s.race_ref
+JOIN DRIVERS      d ON d.driver_ref      = s.driver_ref
+JOIN CONSTRUCTORS c ON c.constructor_ref = s.constructor_ref
+WHERE s.race_ref <> ''
+ON CONFLICT DO NOTHING;
+
+
+
+-- 15. RESULTS
+\echo "Inserting RESULTS..."
+INSERT INTO RESULTS (race_id, driver_id, constructor_id, grid, position, position_order, points, laps, status_id)
+SELECT
+    r.race_id,
+    d.driver_id,
+    c.constructor_id,
+    COALESCE(CAST(NULLIF(s.grid,           '') AS INT),   0),
+    COALESCE(NULLIF(s.position,       ''),   ''),
+    COALESCE(CAST(NULLIF(s.position_order, '') AS INT),   0),
+    COALESCE(CAST(NULLIF(s.points,         '') AS FLOAT), 0),
+    COALESCE(CAST(NULLIF(s.laps,           '') AS INT),   0),
+    st.status_id
+FROM stg_results s
+JOIN RACES        r  ON r.race_ref        = s.race_ref
+JOIN DRIVERS      d  ON d.driver_ref      = s.driver_ref
+JOIN CONSTRUCTORS c  ON c.constructor_ref = s.constructor_ref
+JOIN RACESTATUS   st ON st.status_text    = s.status_text
+WHERE s.race_ref <> ''
+ON CONFLICT DO NOTHING;
+
+
+-- 16. AIRPORTTYPES
+\echo "Inserting AIRPORTTYPES..."
+-- Derivados dos valores únicos da coluna type em airports.csv.
+INSERT INTO AIRPORTTYPES (airporttype)
+SELECT DISTINCT type
+FROM stg_airports
+WHERE type <> ''
+ON CONFLICT DO NOTHING;
+
+
+
+
 COMMIT;
 
 /*
