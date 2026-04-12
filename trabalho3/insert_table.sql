@@ -129,6 +129,28 @@ CREATE TEMP TABLE stg_constructor_standings (
     wins            TEXT
 );
 
+CREATE TEMP TABLE stg_countryinfo (
+    iso_alpha2     TEXT,
+    iso_alpha3     TEXT,
+    iso_numeric    TEXT,
+    fips           TEXT,
+    country_name   TEXT,
+    capital        TEXT,
+    area_km2       TEXT,
+    population     TEXT,
+    continent      TEXT,
+    tld            TEXT,
+    currency_code  TEXT,
+    currency_name  TEXT,
+    phone          TEXT,
+    postal_format  TEXT,
+    postal_regex   TEXT,
+    languages      TEXT,
+    geoname_id     TEXT,
+    neighbours     TEXT,
+    fips_equiv     TEXT
+);
+
 CREATE TEMP TABLE stg_airports (
     id                TEXT,
     ident             TEXT,
@@ -156,6 +178,7 @@ CREATE TEMP TABLE stg_airports (
 -- \copy: leitura dos arquivos nas tabelas de staging (lado cliente)
 
 \copy stg_countries (id, code, name, continent, wikipedia_link, keywords) FROM 'trabalho3/countries.csv' WITH (FORMAT csv, HEADER true, QUOTE '"', DELIMITER ',', NULL '')
+\copy stg_countryinfo FROM 'trabalho3/countryInfo_clean.txt' WITH (FORMAT csv, HEADER false, DELIMITER E'\t', NULL '')
 
 \copy stg_timezones (country_code, timezone_name, gmt_offset, dst_offset, raw_offset) FROM 'trabalho3/timeZones.tsv' WITH (FORMAT csv, HEADER true, DELIMITER E'\t', NULL '')
 
@@ -611,6 +634,27 @@ LEFT JOIN COUNTRIES co
 
 WHERE s.ident <> ''
 
+ON CONFLICT DO NOTHING;
+
+
+-- 20. COUNTRYLANGUAGES
+\echo "Inserting COUNTRYLANGUAGES..."
+INSERT INTO COUNTRYLANGUAGES (country_id, language_id)
+SELECT DISTINCT
+    co.country_id,
+    ilc.language_id
+FROM stg_countryinfo ci
+JOIN COUNTRIES co
+    ON co.code = ci.iso_alpha2
+CROSS JOIN LATERAL unnest(string_to_array(ci.languages, ',')) AS raw_code
+-- pegar subtag regional: 'ar-AE' -> 'ar', 'fa-AF' -> 'fa'
+CROSS JOIN LATERAL (SELECT split_part(raw_code, '-', 1) AS lang_code) AS lc
+JOIN ISOLANGUAGECODES ilc
+    ON  ilc.iso_639_1 = lc.lang_code
+    OR  ilc.iso_639_3 = lc.lang_code
+    OR  ilc.iso_639_2 = lc.lang_code
+WHERE ci.languages IS NOT NULL
+  AND ci.languages <> ''
 ON CONFLICT DO NOTHING;
 
 
