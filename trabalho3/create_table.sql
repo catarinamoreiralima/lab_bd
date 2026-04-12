@@ -68,12 +68,17 @@ CREATE TABLE IF NOT EXISTS COUNTRIES (
     country_name VARCHAR(255) NOT NULL UNIQUE,
     continent_id INT NOT NULL,
     wikipedia_link VARCHAR(255),
-    keywords VARCHAR(255),
     PRIMARY KEY (country_id),
     FOREIGN KEY (continent_id) REFERENCES CONTINENTS(continent_id)  
 );
 
-
+CREATE TABLE IF NOT EXISTS COUNTRY_KEYWORDS (
+    alternate_id   INT GENERATED ALWAYS AS IDENTITY,
+    country_id        INT NOT NULL,
+    keyword VARCHAR(255) NOT NULL,
+    PRIMARY KEY (alternate_id),
+    FOREIGN KEY (country_id) REFERENCES COUNTRIES(country_id)
+);
 
 CREATE TABLE IF NOT EXISTS TIMEZONES (
     timezone_id INT GENERATED ALWAYS AS IDENTITY,
@@ -124,7 +129,6 @@ CREATE TABLE IF NOT EXISTS CITIES (
     city_id INT GENERATED ALWAYS AS IDENTITY,
     city_name VARCHAR(255) NOT NULL,
     city_ascii_name VARCHAR(255) NOT NULL,
-    city_alternate_names VARCHAR(255),
     latitude FLOAT,
     longitude FLOAT,
     featurecode_id INT NOT NULL,
@@ -145,13 +149,21 @@ CREATE TABLE IF NOT EXISTS CITIES (
     FOREIGN KEY (timezone_id) REFERENCES TIMEZONES(timezone_id)
 );
 
+CREATE TABLE IF NOT EXISTS CITY_ALTERNATE_NAMES (
+    alternate_id   INT GENERATED ALWAYS AS IDENTITY,
+    city_id        INT NOT NULL,
+    alternate_name VARCHAR(255) NOT NULL,
+    PRIMARY KEY (alternate_id),
+    FOREIGN KEY (city_id) REFERENCES CITIES(city_id)
+);
+
 CREATE TABLE IF NOT EXISTS CIRCUITS (
     circuit_id INT GENERATED ALWAYS AS IDENTITY,
     circuit_ref VARCHAR(255) NOT NULL UNIQUE,
     circuit_name VARCHAR(255) NOT NULL,
     circuit_lat FLOAT,
     circuit_lng FLOAT,
-    circuit_city_id INT NOT NULL,
+    circuit_city_id INT,
     circuit_url VARCHAR(255),
     PRIMARY KEY (circuit_id),
     FOREIGN KEY (circuit_city_id) REFERENCES CITIES(city_id)
@@ -237,7 +249,7 @@ CREATE TABLE IF NOT EXISTS AIRPORTS (
     airport_name VARCHAR(255) NOT NULL,
     lat_deg FLOAT NOT NULL,
     long_deg  FLOAT NOT NULL,
-    elev_ft INT NOT NULL,
+    elev_ft INT,
     city_id INT,
     scheduled_service VARCHAR(255) NOT NULL,
     GPS_code VARCHAR(255),

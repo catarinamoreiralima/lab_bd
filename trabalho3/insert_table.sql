@@ -152,84 +152,43 @@ CREATE TEMP TABLE stg_airports (
 );
 
 
--- 
--- COPY: leitura dos arquivos nas tabelas de staging
+--
+-- \copy: leitura dos arquivos nas tabelas de staging (lado cliente)
 
-COPY stg_countries (id, code, name, continent, wikipedia_link, keywords)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/countries.csv'
-WITH (FORMAT csv, HEADER true, QUOTE '"', DELIMITER ',', NULL '');
+\copy stg_countries (id, code, name, continent, wikipedia_link, keywords) FROM 'trabalho3/countries.csv' WITH (FORMAT csv, HEADER true, QUOTE '"', DELIMITER ',', NULL '')
 
--- timeZones.tsv: separado por tab, tem header
-COPY stg_timezones (country_code, timezone_name, gmt_offset, dst_offset, raw_offset)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/timeZones.tsv'
-WITH (FORMAT csv, HEADER true, DELIMITER E'\t', NULL '');
+\copy stg_timezones (country_code, timezone_name, gmt_offset, dst_offset, raw_offset) FROM 'trabalho3/timeZones.tsv' WITH (FORMAT csv, HEADER true, DELIMITER E'\t', NULL '')
 
--- featureCodes_en.tsv: separado por tab, SEM header
-COPY stg_featurecodes (code_full, featurename, featuredescription)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/featureCodes_en.tsv'
-WITH (FORMAT csv, HEADER false, DELIMITER E'\t', NULL '');
+\copy stg_featurecodes (code_full, featurename, featuredescription) FROM 'trabalho3/featureCodes_en.tsv' WITH (FORMAT csv, HEADER false, DELIMITER E'\t', NULL '')
 
--- cities.tsv: separado por tab, SEM header (formato padrão Geonames)
-COPY stg_cities (
-    geoname_id, city_name, city_ascii_name, city_alternate_names,
-    latitude, longitude, feature_class, feature_code,
-    country_code, cc2, admin1_code, admin2_code, admin3_code, admin4_code,
-    population, elevation, dem, timezone_name, modification_date
-)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/cities.tsv'
-WITH (FORMAT csv, HEADER false, DELIMITER E'\t', NULL '');
+\copy stg_cities (geoname_id, city_name, city_ascii_name, city_alternate_names, latitude, longitude, feature_class, feature_code, country_code, cc2, admin1_code, admin2_code, admin3_code, admin4_code, population, elevation, dem, timezone_name, modification_date) FROM 'trabalho3/cities.tsv' WITH (FORMAT csv, HEADER false, DELIMITER E'\t', NULL '')
 
--- iso-languagecodes.tsv: separado por tab, tem header
-COPY stg_languagecodes (iso_639_3, iso_639_2, iso_639_1, language_name)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/iso-languagecodes.tsv'
-WITH (FORMAT csv, HEADER true, DELIMITER E'\t', NULL '');
+\copy stg_languagecodes (iso_639_3, iso_639_2, iso_639_1, language_name) FROM 'trabalho3/iso-languagecodes.tsv' WITH (FORMAT csv, HEADER true, DELIMITER E'\t', NULL '')
 
-COPY stg_constructors (constructor_ref, constructor_name, nationality, wikipedia_url)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/constructors.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+\copy stg_constructors (constructor_ref, constructor_name, nationality, wikipedia_url) FROM 'trabalho3/constructors.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '')
 
-COPY stg_drivers (driver_ref, given_name, family_name, nationality, date_of_birth)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/drivers.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+\copy stg_drivers (driver_ref, given_name, family_name, nationality, date_of_birth) FROM 'trabalho3/drivers.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '')
 
-COPY stg_circuits (circuit_ref, circuit_name, lat, lng, locality, country, wikipedia_url)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/circuits.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+\copy stg_circuits (circuit_ref, circuit_name, lat, lng, locality, country, wikipedia_url) FROM 'trabalho3/circuits.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '')
 
-COPY stg_races (race_ref, season_year, round, race_name, race_date, race_time, circuit_ref)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/races.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+\copy stg_races (race_ref, season_year, round, race_name, race_date, race_time, circuit_ref) FROM 'trabalho3/races.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '')
 
-COPY stg_results (race_ref, driver_ref, constructor_ref, grid, position, position_order, points, laps, status_text)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/results.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+\copy stg_results (race_ref, driver_ref, constructor_ref, grid, position, position_order, points, laps, status_text) FROM 'trabalho3/results.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '')
 
-COPY stg_qualifying (race_ref, driver_ref, constructor_ref, position, q1, q2, q3)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/qualifying.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+\copy stg_qualifying (race_ref, driver_ref, constructor_ref, position, q1, q2, q3) FROM 'trabalho3/qualifying.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '')
 
-COPY stg_driver_standings (season_year, round, driver_ref, position, points, wins)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/driver_standings.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+\copy stg_driver_standings (season_year, round, driver_ref, position, points, wins) FROM 'trabalho3/driver_standings.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '')
 
-COPY stg_constructor_standings (season_year, round, constructor_ref, position, points, wins)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/constructor_standings.csv'
-WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+\copy stg_constructor_standings (season_year, round, constructor_ref, position, points, wins) FROM 'trabalho3/constructor_standings.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '')
 
-COPY stg_airports (
-    id, ident, type, name, latitude_deg, longitude_deg, elevation_ft,
-    continent, iso_country, iso_region, municipality, scheduled_service,
-    icao_code, iata_code, gps_code, local_code, home_link, wikipedia_link, keywords
-)
-FROM '/Users/catarinamoreiralima/Documents/Faculdade/lab_bd/trabalho3/airports.csv'
-WITH (FORMAT csv, HEADER true, QUOTE '"', DELIMITER ',', NULL '');
+\copy stg_airports (id, ident, type, name, latitude_deg, longitude_deg, elevation_ft, continent, iso_country, iso_region, municipality, scheduled_service, icao_code, iata_code, gps_code, local_code, home_link, wikipedia_link, keywords) FROM 'trabalho3/airports.csv' WITH (FORMAT csv, HEADER true, QUOTE '"', DELIMITER ',', NULL '')
 
 
 -- INSERT nas tabelas finais
 -- (ordem respeita as dependências de chaves estrangeiras)
 
 -- 1. CONTINENTS
--- Não existe CSV de continentes; os códigos são derivados de countries.csv.
+\echo "Inserting CONTINENTS..."
 INSERT INTO CONTINENTS (continent_code, continent_name)
 SELECT DISTINCT
     continent,
@@ -247,19 +206,32 @@ WHERE continent IN ('AF','AN','AS','EU','NA','OC','SA')
 ON CONFLICT DO NOTHING;
 
 -- 2. COUNTRIES
-INSERT INTO COUNTRIES (code, country_name, continent_id, wikipedia_link, keywords)
+\echo "Inserting COUNTRIES..."
+-- 2. COUNTRIES (sem keywords)
+INSERT INTO COUNTRIES (code, country_name, continent_id, wikipedia_link)
 SELECT
     s.code,
     s.name,
     c.continent_id,
-    NULLIF(s.wikipedia_link, ''),
-    NULLIF(s.keywords, '')
+    NULLIF(s.wikipedia_link, '')
 FROM stg_countries s
 JOIN CONTINENTS c ON c.continent_code = s.continent
 WHERE s.code <> ''
 ON CONFLICT DO NOTHING;
 
+-- 2b. COUNTRY_KEYWORDS
+INSERT INTO COUNTRY_KEYWORDS (country_id, keyword)
+SELECT
+    co.country_id,
+    TRIM(keyword) AS keyword
+FROM stg_countries s
+JOIN COUNTRIES co ON co.code = s.code
+CROSS JOIN LATERAL unnest(string_to_array(s.keywords, ',')) AS keyword
+WHERE s.keywords <> ''
+  AND TRIM(keyword) <> '';
+
 -- 3. TIMEZONES
+\echo "Inserting TIMEZONES..."
 INSERT INTO TIMEZONES (timezone_name, gmt_offset, dst_offset, raw_offset)
 SELECT
     timezone_name,
@@ -271,7 +243,7 @@ WHERE timezone_name <> ''
 ON CONFLICT DO NOTHING;
 
 -- 4. FEATURECODES
--- Primeira coluna tem formato "CLASS.CODE"; linhas sem ponto são ignoradas.
+\echo "Inserting FEATURECODES..."
 INSERT INTO FEATURECODES (featureclass, featurecode, featurename, featuredescription)
 SELECT
     split_part(code_full, '.', 1),
@@ -283,8 +255,10 @@ WHERE code_full LIKE '%.%'
   AND split_part(code_full, '.', 2) <> ''
 ON CONFLICT DO NOTHING;
 
+-- 5. CITIES
+\echo "Inserting CITIES..."
 INSERT INTO CITIES (
-    city_name, city_ascii_name, city_alternate_names,
+    city_name, city_ascii_name,
     latitude, longitude,
     featurecode_id, country_id, timezone_id,
     cc2, admin1_code, admin2_code, admin3_code, admin4_code,
@@ -293,7 +267,6 @@ INSERT INTO CITIES (
 SELECT
     s.city_name,
     s.city_ascii_name,
-    LEFT(s.city_alternate_names, 255),
     CAST(s.latitude  AS FLOAT),
     CAST(s.longitude AS FLOAT),
     fc.featurecode_id,
@@ -314,13 +287,26 @@ LEFT JOIN FEATURECODES fc ON fc.featurecode  = s.feature_code
 LEFT JOIN COUNTRIES    co ON co.code          = s.country_code
 LEFT JOIN TIMEZONES    tz ON tz.timezone_name = s.timezone_name;
 
+INSERT INTO CITY_ALTERNATE_NAMES (city_id, alternate_name)
+SELECT
+    ci.city_id,
+    TRIM(alt_name) AS alternate_name
+FROM stg_cities s
+JOIN CITIES ci ON ci.city_ascii_name = s.city_ascii_name
+               AND ci.modification_date = CAST(s.modification_date AS DATE)
+CROSS JOIN LATERAL unnest(string_to_array(s.city_alternate_names, ',')) AS alt_name
+WHERE s.city_alternate_names <> ''
+  AND TRIM(alt_name) <> '';
+
 -- 6. LANGUAGENAMES
+\echo "Inserting LANGUAGENAMES..."
 INSERT INTO LANGUAGENAMES (language_name)
 SELECT DISTINCT language_name
 FROM stg_languagecodes
 ON CONFLICT DO NOTHING;
 
 -- 7. ISOLANGUAGECODES
+\echo "Inserting ISOLANGUAGECODES..."
 INSERT INTO ISOLANGUAGECODES (iso_639_3, iso_639_2, iso_639_1, language_id)
 SELECT
     s.iso_639_3,
@@ -332,6 +318,7 @@ JOIN LANGUAGENAMES ln ON ln.language_name = s.language_name
 ON CONFLICT DO NOTHING;
 
 -- 8. CONSTRUCTORS
+\echo "Inserting CONSTRUCTORS..."
 INSERT INTO CONSTRUCTORS (constructor_ref, constructor_name, nationality, constructor_url)
 SELECT
     constructor_ref,
@@ -343,6 +330,7 @@ WHERE constructor_ref <> ''
 ON CONFLICT DO NOTHING;
 
 -- 9. DRIVERS
+\echo "Inserting DRIVERS..."
 INSERT INTO DRIVERS (driver_ref, given_name, family_name, date_of_birth, nationality)
 SELECT
     driver_ref,
@@ -354,7 +342,7 @@ FROM stg_drivers
 ON CONFLICT DO NOTHING;
 
 -- 10. SEASONS
--- Derivadas dos anos únicos presentes em races.csv.
+\echo "Inserting SEASONS..."
 INSERT INTO SEASONS (season_year)
 SELECT DISTINCT CAST(season_year AS INT)
 FROM stg_races
@@ -362,7 +350,7 @@ WHERE season_year ~ '^\d+$'
 ON CONFLICT DO NOTHING;
 
 -- 11. RACESTATUS
--- Derivados dos valores únicos de status em results.csv.
+\echo "Inserting RACESTATUS..."
 INSERT INTO RACESTATUS (status_text)
 SELECT DISTINCT status_text
 FROM stg_results
@@ -370,8 +358,7 @@ WHERE status_text <> ''
 ON CONFLICT DO NOTHING;
 
 -- 12. CIRCUITS
--- circuit_city_id: busca pelo nome da localidade (locality) + país,
--- com fallback para a cidade mais próxima por coordenada.
+\echo "Inserting CIRCUITS..."
 INSERT INTO CIRCUITS (circuit_ref, circuit_name, circuit_lat, circuit_lng, circuit_city_id, circuit_url)
 SELECT
     s.circuit_ref,
@@ -379,7 +366,6 @@ SELECT
     CAST(s.lat AS FLOAT),
     CAST(s.lng AS FLOAT),
     COALESCE(
-        -- 1ª tentativa: cidade com nome igual à localidade do circuito
         (
             SELECT ci.city_id FROM CITIES ci
             JOIN COUNTRIES co ON co.country_id = ci.country_id
@@ -387,7 +373,6 @@ SELECT
               AND co.country_name ILIKE s.country
             LIMIT 1
         ),
-        -- 2ª tentativa: cidade mais próxima por coordenada geográfica
         (
             SELECT city_id FROM CITIES
             ORDER BY ABS(latitude  - CAST(s.lat AS FLOAT))
@@ -404,8 +389,8 @@ ON CONFLICT DO NOTHING;
 
 
 
-
 -- 13. RACES
+\echo "Inserting RACES..."
 INSERT INTO RACES (race_ref, season_id, circuit_id, round, race_name, race_date, race_time)
 SELECT
     s.race_ref,
@@ -423,6 +408,7 @@ WHERE s.race_ref  <> ''
 ON CONFLICT DO NOTHING;
 
 -- 14. QUALIFYING
+\echo "Inserting QUALIFYING..."
 INSERT INTO QUALIFYING (race_id, driver_id, constructor_id, position, Q1, Q2, Q3)
 SELECT
     r.race_id,
@@ -442,6 +428,7 @@ ON CONFLICT DO NOTHING;
 
 
 -- 15. RESULTS
+\echo "Inserting RESULTS..."
 INSERT INTO RESULTS (race_id, driver_id, constructor_id, grid, position, position_order, points, laps, status_id)
 SELECT
     r.race_id,
@@ -463,6 +450,7 @@ ON CONFLICT DO NOTHING;
 
 
 -- 16. AIRPORTTYPES
+\echo "Inserting AIRPORTTYPES..."
 -- Derivados dos valores únicos da coluna type em airports.csv.
 INSERT INTO AIRPORTTYPES (airporttype)
 SELECT DISTINCT type
@@ -470,3 +458,17 @@ FROM stg_airports
 WHERE type <> ''
 ON CONFLICT DO NOTHING;
 
+
+
+
+COMMIT;
+
+/*
+- races
+- quali
+- results
+- standings
+- airports
+- airporttypes
+
+*/
