@@ -434,11 +434,11 @@ SELECT
     r.race_id,
     d.driver_id,
     c.constructor_id,
-    COALESCE(CAST(NULLIF(s.grid,           '') AS INT),   0),
-    COALESCE(NULLIF(s.position,       ''),   ''),
-    COALESCE(CAST(NULLIF(s.position_order, '') AS INT),   0),
-    COALESCE(CAST(NULLIF(s.points,         '') AS FLOAT), 0),
-    COALESCE(CAST(NULLIF(s.laps,           '') AS INT),   0),
+    CAST(NULLIF(s.grid,           '') AS INT),
+    NULLIF(s.position,       ''),
+    CAST(NULLIF(s.position_order, '') AS INT),
+    CAST(NULLIF(s.points,         '') AS FLOAT),
+    CAST(NULLIF(s.laps,           '') AS INT),
     st.status_id
 FROM stg_results s
 JOIN RACES        r  ON r.race_ref        = s.race_ref
@@ -547,7 +547,6 @@ COMMIT;
 
 /*
 
-- standings
 - airports
 
 */
