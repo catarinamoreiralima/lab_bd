@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS CIRCUITS (
     circuit_name VARCHAR(255) NOT NULL,
     circuit_lat FLOAT,
     circuit_lng FLOAT,
-    circuit_city_id INT NOT NULL,
+    circuit_city_id INT,
     circuit_url VARCHAR(255),
     PRIMARY KEY (circuit_id),
     FOREIGN KEY (circuit_city_id) REFERENCES CITIES(city_id)
@@ -237,7 +237,7 @@ CREATE TABLE IF NOT EXISTS AIRPORTS (
     airport_name VARCHAR(255) NOT NULL,
     lat_deg FLOAT NOT NULL,
     long_deg  FLOAT NOT NULL,
-    elev_ft INT NOT NULL,
+    elev_ft INT,
     city_id INT,
     scheduled_service VARCHAR(255) NOT NULL,
     GPS_code VARCHAR(255),
