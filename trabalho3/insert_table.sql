@@ -459,16 +459,95 @@ WHERE type <> ''
 ON CONFLICT DO NOTHING;
 
 
+-- 17. STANDINGS + DRIVERSTANDINGS
+-- Cada linha do CSV de driver standings gera uma linha em STANDINGS
+-- e uma correspondente em DRIVERSTANDINGS, via CTE com RETURNING.
 
+-- Não existe um .csv standings somente, então toda vez q inserimos em driver ou constructor, inserimos também em standings, e depois associamos com driverstandings ou constructorstandings, respectivamente.
+
+
+\echo "Inserting STANDINGS + DRIVERSTANDINGS..."
+
+WITH numbered AS ( -- para garantir a correspondência entre as linhas inseridas em STANDINGS e as linhas originais do CSV, mesmo com possíveis filtros ou ordenações
+    SELECT *,
+           ROW_NUMBER() OVER () AS rn
+    FROM stg_driver_standings
+    WHERE season_year <> ''
+),
+inserted AS ( -- inserção em STANDINGS, retornando o ID gerado para cada linha
+    INSERT INTO STANDINGS (season_id, round, position, points, wins)
+    SELECT
+        se.season_id,
+        CAST(CAST(n.round AS FLOAT) AS INT),
+        COALESCE(CAST(NULLIF(n.position, '') AS FLOAT), 0),
+        COALESCE(CAST(NULLIF(n.points, '') AS FLOAT), 0),
+        COALESCE(CAST(NULLIF(n.wins, '') AS FLOAT), 0)
+    FROM numbered n
+    JOIN SEASONS se ON se.season_year = CAST(n.season_year AS INT)
+    RETURNING standings_id
+),
+numbered_inserted AS ( -- para garantir a correspondência entre as linhas inseridas em STANDINGS e as linhas originais do CSV, mesmo com possíveis filtros ou ordenações
+    SELECT
+        i.standings_id,
+        ROW_NUMBER() OVER () AS rn
+    FROM inserted i
+)
+INSERT INTO DRIVERSTANDINGS (standings_id, driver_id) -- associação com driver_id via JOIN com o CSV (staged) original
+SELECT
+    ni.standings_id,
+    d.driver_id
+FROM numbered_inserted ni
+JOIN numbered n ON n.rn = ni.rn
+JOIN DRIVERS d ON d.driver_ref = n.driver_ref
+ON CONFLICT DO NOTHING;
+
+
+-- 18. CONSTRUCTORSTANDINGS
+-- Mesma lógica de DRIVERSTANDINGS, mas associando com constructor_id em vez de driver_id.
+\echo "Inserting STANDINGS + CONSTRUCTORSTANDINGS..."
+
+WITH numbered AS (
+    SELECT *,
+           ROW_NUMBER() OVER () AS rn
+    FROM stg_constructor_standings
+    WHERE season_year <> ''
+),
+inserted AS (
+    INSERT INTO STANDINGS (season_id, round, position, points, wins)
+    SELECT
+        se.season_id,
+        CAST(CAST(n.round AS FLOAT) AS INT),
+        COALESCE(CAST(NULLIF(n.position, '') AS FLOAT), 0),
+        COALESCE(CAST(NULLIF(n.points, '') AS FLOAT), 0),
+        COALESCE(CAST(NULLIF(n.wins, '') AS FLOAT), 0)
+    FROM numbered n
+    JOIN SEASONS se 
+        ON se.season_year = CAST(n.season_year AS INT)
+    RETURNING standings_id
+),
+numbered_inserted AS (
+    SELECT
+        i.standings_id,
+        ROW_NUMBER() OVER () AS rn
+    FROM inserted i
+)
+
+INSERT INTO CONSTRUCTORSTANDINGS (standings_id, constructor_id)
+SELECT
+    ni.standings_id,
+    c.constructor_id
+FROM numbered_inserted ni
+JOIN numbered n 
+    ON n.rn = ni.rn
+JOIN CONSTRUCTORS c 
+    ON c.constructor_ref = n.constructor_ref
+ON CONFLICT DO NOTHING;
 
 COMMIT;
 
 /*
-- races
-- quali
-- results
+
 - standings
 - airports
-- airporttypes
 
 */
