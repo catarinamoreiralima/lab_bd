@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS CITIES (
     admin3_code VARCHAR(255),
     admin4_code VARCHAR(255),
     city_population INT,
-    city_levation INT,
+    city_elevation INT,
     city_dem INT,
     modification_date DATE NOT NULL,
     PRIMARY KEY (city_id),

@@ -262,7 +262,7 @@ INSERT INTO CITIES (
     latitude, longitude,
     featurecode_id, country_id, timezone_id,
     cc2, admin1_code, admin2_code, admin3_code, admin4_code,
-    city_population, city_levation, city_dem, modification_date
+    city_population, city_elevation, city_dem, modification_date
 )
 SELECT
     s.city_name,
