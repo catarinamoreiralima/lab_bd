@@ -46,9 +46,9 @@ CREATE TABLE IF NOT EXISTS STANDINGS (
     standings_id INT GENERATED ALWAYS AS IDENTITY,
     season_id INT NOT NULL,
     round INT NOT NULL,
-    position INT NOT NULL,
+    position FLOAT NOT NULL,
     points FLOAT NOT NULL,
-    wins INT NOT NULL,
+    wins FLOAT NOT NULL,
     PRIMARY KEY (standings_id),
     FOREIGN KEY (season_id) REFERENCES SEASONS(season_id)
 );
