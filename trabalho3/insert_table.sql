@@ -543,6 +543,77 @@ JOIN CONSTRUCTORS c
     ON c.constructor_ref = n.constructor_ref
 ON CONFLICT DO NOTHING;
 
+-- 19. AIRPORTS
+\echo "Inserting AIRPORTS..."
+
+ALTER TABLE AIRPORTS 
+ALTER COLUMN keywords TYPE TEXT;
+
+ALTER TABLE AIRPORTS 
+ALTER COLUMN wikipedia_link TYPE TEXT;
+
+ALTER TABLE AIRPORTS 
+ALTER COLUMN home_link TYPE TEXT;
+
+INSERT INTO AIRPORTS (
+    airport_identifier, airporttype_id, airport_name,
+    lat_deg, long_deg, elev_ft, city_id,
+    scheduled_service, GPS_code, IATA_code, ICAO_code, local_code,
+    home_link, wikipedia_link, keywords
+)
+SELECT
+    s.ident,
+    apt.airporttype_id,
+    s.name,
+    CAST(NULLIF(s.latitude_deg,  '') AS FLOAT),
+    CAST(NULLIF(s.longitude_deg, '') AS FLOAT),
+    CAST(NULLIF(s.elevation_ft, '') AS INT),
+
+    COALESCE(
+        -- 1. tenta achar cidade pelo nome + país
+        (
+            SELECT ci.city_id 
+            FROM CITIES ci
+            WHERE (ci.city_name ILIKE s.municipality 
+                OR ci.city_ascii_name ILIKE s.municipality)
+              AND ci.country_id = co.country_id
+            LIMIT 1
+        ),
+
+        -- 2. fallback: cidade mais próxima pelas coordenadas
+        (
+            SELECT city_id 
+            FROM CITIES
+            WHERE s.latitude_deg  <> ''
+              AND s.longitude_deg <> ''
+            ORDER BY 
+                ABS(latitude  - CAST(s.latitude_deg  AS FLOAT)) +
+                ABS(longitude - CAST(s.longitude_deg AS FLOAT))
+            LIMIT 1
+        )
+    ),
+
+    s.scheduled_service,
+    NULLIF(s.gps_code,   ''),
+    NULLIF(s.iata_code,  ''),
+    NULLIF(s.icao_code,  ''),
+    NULLIF(s.local_code, ''),
+    NULLIF(s.home_link,      ''),
+    NULLIF(s.wikipedia_link, ''),
+    NULLIF(s.keywords,       '')
+
+FROM stg_airports s
+JOIN AIRPORTTYPES apt 
+    ON apt.airporttype = s.type
+
+LEFT JOIN COUNTRIES co 
+    ON co.code ILIKE s.iso_country
+
+WHERE s.ident <> ''
+
+ON CONFLICT DO NOTHING;
+
+
 COMMIT;
 
 /*
