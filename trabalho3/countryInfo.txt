@@ -10,7 +10,7 @@
 # https://spreadsheets.google.com/ccc?key=pJpyPy-J5JSNhe7F_KxwiCA&hl=en
 #
 #
-# The countrycode XK temporarily stands for Kosvo:
+# The countrycode XK temporarily stands for Kosovo:
 # http://geonames.wordpress.com/2010/03/08/xk-country-code-for-kosovo/								
 #
 #
