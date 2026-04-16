@@ -73,6 +73,7 @@ CREATE TABLE countries (
     id                  SERIAL PRIMARY KEY,
     code                VARCHAR(2) NOT NULL UNIQUE,  -- Código ISO 3166-1 alpha-2
     name                VARCHAR(255) NOT NULL UNIQUE, -- Nome oficial do país
+    nationality         VARCHAR(255),          -- Gentílico principal
     wikipedia_link      TEXT,                        -- Link da Wikipedia
     keywords            TEXT,                        -- Palavras-chave para busca
     continent_id        INTEGER NOT NULL,            -- Relacionamento com continente
