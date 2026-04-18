@@ -25,4 +25,8 @@ Write-Host "Inserindo dados..."
 Invoke-Expression "$PSQL -f ./trabalho3/insert_table.sql"
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
+Write-Host "Alterando dados para essa entrega..."
+Invoke-Expression "$PSQL -f ./trabalho3/alter_table.sql"
+if ($LASTEXITCODE -ne 0) { exit 1 }
+
 Write-Host "Pronto!"
