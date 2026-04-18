@@ -3,8 +3,9 @@
 -- ANTES DE TUDO, CRIANDO O MAPEAMENTO DE PAÍS-NACIONALIDAE PARA USAR NAS PRÓXIMAS QUERIES (TABELA TEMPORÁRIA)
 -- (APENAS FOI INSERIDA AS NACIONALDADES QUE JÁ EXISTIAM NO BANCO)
 
-CREATE TEMP TABLE nat_mapping(nat TEXT, country_name TEXT) AS 
-    VALUES 
+CREATE TEMP TABLE nat_mapping(nat TEXT, country_name TEXT);
+
+INSERT INTO nat_mapping(nat, country_name) VALUES
   	('American', 'United States'),
   	('Argentine', 'Argentina'),
   	('Australian', 'Australia'),
@@ -42,7 +43,7 @@ CREATE TEMP TABLE nat_mapping(nat TEXT, country_name TEXT) AS
     ('Swiss', 'Switzerland'),
     ('Thai', 'Thailand'),
     ('Uruguayan', 'Uruguay'),
-    ('Venezuelan', 'Venezuela')
+    ('Venezuelan', 'Venezuela');
 
 -- CRIANDO A COLUNA NACIONALIDADE AOS COUNTRIES
 
