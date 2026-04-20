@@ -94,3 +94,6 @@ UPDATE constructors SET country_id = 249 WHERE id = 77;
 DROP TABLE nat_mapping;
 
 -- FINAL DE MUDANÇA DE COUNTRIES
+
+
+

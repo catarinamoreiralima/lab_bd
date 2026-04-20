@@ -64,6 +64,16 @@ if [ $? -ne 0 ]; then
 fi
 
 # =========================
+# ALTERAR DADOS
+# =========================
+echo "Alterando dados..."
+$PSQL -d $PG_DB -f ./trabalho3/alter_table.sql
+if [ $? -ne 0 ]; then
+  echo "Erro ao alterar dados"
+  exit 1
+fi
+
+# =========================
 # FINAL
 # =========================
 echo "Banco resetado e populado com sucesso"

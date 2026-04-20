@@ -288,6 +288,8 @@ CREATE TEMP TABLE stg_cities (
 
 -- Continentes: Mapeamento de códigos (AF, EU) para nomes completos
 -- Usa CASE para traduzir códigos em nomes legíveis
+
+\echo 'Inserindo continentes...'
 INSERT INTO continents (code, name)
 SELECT DISTINCT
     c.continent,
@@ -306,6 +308,7 @@ WHERE c.continent IS NOT NULL
 ON CONFLICT (code) DO NOTHING;  -- Evita duplicatas se re-executar
 
 -- Países (com relacionamento para continentes)
+\echo 'Inserindo países...'
 INSERT INTO countries (code, name, wikipedia_link, keywords, continent_id)
 SELECT
     s.code,
@@ -323,6 +326,7 @@ SET name = EXCLUDED.name,
     continent_id = EXCLUDED.continent_id;
 
 -- Fusos horários
+\echo 'Inserindo fusos horários...'
 INSERT INTO time_zones (name, gmt_offset, dst_offset, raw_offset)
 SELECT DISTINCT
     s.time_zone_name,
@@ -334,6 +338,7 @@ WHERE s.time_zone_name IS NOT NULL
 ON CONFLICT (name) DO NOTHING;
 
 -- Nomes de idiomas (base para códigos ISO)
+\echo 'Inserindo idiomas...'
 INSERT INTO language_names (name)
 SELECT DISTINCT TRIM(s.language_name)
 FROM stg_iso_language_codes s
@@ -341,6 +346,7 @@ WHERE TRIM(s.language_name) <> ''
 ON CONFLICT (name) DO NOTHING;
 
 -- Códigos ISO de idiomas
+\echo 'Inserindo códigos ISO de idiomas...'
 INSERT INTO iso_language_codes (iso_639_3, iso_639_2, iso_639_1, language_id)
 SELECT
     NULLIF(TRIM(s.iso_639_3), ''),
@@ -353,6 +359,7 @@ JOIN language_names ln
 ON CONFLICT DO NOTHING;
 
 -- Códigos de características geográficas (PPL = populated place, etc.)
+\echo 'Inserindo códigos de características geográficas...'
 INSERT INTO feature_codes (feature_class, feature_code, name, description)
 SELECT DISTINCT
     split_part(s.full_code, '.', 1),
@@ -373,6 +380,8 @@ ON CONFLICT (feature_class, feature_code) DO NOTHING;
 -- 1. Priorizar por geoname_id único (chave natural)
 -- 2. Evitar duplicatas por nome + país (case-insensitive)
 -- 3. Usar LEFT JOINs para dados opcionais (feature_codes, time_zones)
+
+\echo 'Inserindo cidades principais do GeoNames...'
 
 INSERT INTO cities (
     id,
@@ -433,7 +442,7 @@ SELECT setval(
 -- ============================================================================================================
 -- 6. CIDADES COMPLEMENTARES VIA AEROPORTOS
 -- ============================================================================================================
-
+\echo 'Inserindo cidades complementares via aeroportos...'
 INSERT INTO cities (
     name,
     ascii_name,
@@ -461,7 +470,7 @@ WHERE s.municipality IS NOT NULL
 -- ============================================================================================================
 -- 7. CIDADES COMPLEMENTARES VIA CIRCUITOS F1
 -- ============================================================================================================
-
+\echo 'Inserindo cidades complementares via circuitos F1...'
 INSERT INTO cities (
     name,
     ascii_name,
@@ -486,7 +495,110 @@ WHERE s.locality IS NOT NULL
         AND ci.country_id = c.id
   );
 
+
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
+-- MUDANÇA DE CITIES - COLUNA DE NOMES DUPLICADOS PARA EVITAR DUPLICACÃO DE DADOS
+
+
+ALTER TABLE cities
+ADD COLUMN name_normalized TEXT;
+-- cria uma coluna de nomes normalizados: sem acentos, minúsculos, sem espaços extras
+
+UPDATE cities
+SET name_normalized = unaccent(lower(trim(name)));
+
+CREATE OR REPLACE FUNCTION normalize_city_name()
+RETURNS trigger AS $$
+BEGIN
+    NEW.name_normalized := unaccent(lower(trim(NEW.name)));
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_normalize_city_name
+BEFORE INSERT OR UPDATE ON cities
+FOR EACH ROW
+EXECUTE FUNCTION normalize_city_name();
+
+\echo 'Removendo cidades duplicadas após normalização...'
+-- seleciona e deleta cidades com mesmo nome normalizado, mesmo país e coordenadas próximas (arredondadas para 0.1 grau), mantendo as entradas de maior população e mais recentemente modificadas
+DELETE FROM cities
+WHERE id IN (
+    SELECT id
+    FROM (
+        SELECT id,
+               ROW_NUMBER() OVER (
+                   PARTITION BY name_normalized, country_id,
+                                ROUND(latitude::numeric, 1),
+                                ROUND(longitude::numeric, 1)
+                   ORDER BY population DESC NULLS LAST,
+                            modification_date DESC NULLS LAST,
+                            id ASC
+               ) AS rn
+        FROM cities
+    ) t
+    WHERE t.rn > 1
+);
+
+-- Para casos mais complexos de duplicação (mesmo nome, país e coordenadas próximas), usar trigram similarity para comparar nomes e distância geográfica real para confirmar duplicação 
+-- a limpeza anterior diminui a base para um número menor de casos, onde podemos aplicar regras mais sofisticadas
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX idx_cities_trgm
+ON cities USING gin (name_normalized gin_trgm_ops);
+
+-- seleciona e deleta cidades com mesmo país e coordenadas próximas, usando trigram similarity para comparar nomes e distância geográfica real para confirmar duplicação, mantendo a entrada mais recentemente modificada ou com maior população
+DELETE FROM cities c1
+WHERE EXISTS (
+    SELECT 1
+    FROM cities c2
+    WHERE c1.id <> c2.id
+      AND c1.country_id = c2.country_id
+      -- evita erros de comparação de coordenadas nulas
+      AND c1.latitude IS NOT NULL
+      AND c1.longitude IS NOT NULL
+      AND c2.latitude IS NOT NULL
+      AND c2.longitude IS NOT NULL
+      
+      /* -- filtro rápido - eliminando cidades com diferença de coordenadas maior que 0.1 grau (aprox. 11km), para reduzir o número de comparações mais complexas
+      AND ABS(c1.latitude - c2.latitude) < 0.1
+      AND ABS(c1.longitude - c2.longitude) < 0.1 */
+      
+      --  distância real (< 10 km haversine)
+      AND (
+          6371 * acos(
+              cos(radians(c1.latitude)) * cos(radians(c2.latitude)) *
+              cos(radians(c2.longitude) - radians(c1.longitude)) +
+              sin(radians(c1.latitude)) * sin(radians(c2.latitude))
+          )
+      ) < 10
+      
+      -- similaridade de nome (pode ter uma similaridade menor devido ao filtro anterior que limita a distancia a 10km)
+      AND similarity(c1.name_normalized, c2.name_normalized) > 0.40
+      
+      -- regra de registro melhor -> manter o mais recentemente modificado ou com maior população
+      AND (
+          c2.modification_date > c1.modification_date OR
+          (
+              c2.modification_date = c1.modification_date AND
+              c2.population > c1.population
+          ) OR
+          (
+              c2.modification_date = c1.modification_date AND
+              c2.population = c1.population AND
+              c2.id < c1.id
+          )
+      )
+);
+
+
+
+
+
 -- Tipos de aeroportos (dimensão para classificação)
+\echo 'Inserindo tipos de aeroportos...'
 INSERT INTO airport_types (type)
 SELECT DISTINCT s.type
 FROM stg_airports s
@@ -496,7 +608,7 @@ ON CONFLICT (type) DO NOTHING;
 -- ============================================================================================================
 -- 8. AEROPORTOS
 -- ============================================================================================================
-
+\echo 'Inserindo aeroportos...'
 INSERT INTO airports (
     ident,
     airport_type_id,
@@ -548,6 +660,7 @@ ON CONFLICT (ident) DO NOTHING;
 -- para que chaves estrangeiras possam ser resolvidas
 
 -- Temporadas (dimensão temporal)
+\echo 'Inserindo temporadas...'
 INSERT INTO seasons (year)
 SELECT DISTINCT season
 FROM stg_races
@@ -562,6 +675,7 @@ WHERE status IS NOT NULL
 ON CONFLICT (status) DO NOTHING;
 
 -- Escuderias
+\echo 'Inserindo escuderias...'
 INSERT INTO constructors (
     constructor_ref,
     name,
@@ -577,6 +691,7 @@ FROM stg_constructors s
 ON CONFLICT (constructor_ref) DO NOTHING;
 
 -- Pilotos
+\echo 'Inserindo pilotos...'
 INSERT INTO drivers (
     driver_ref,
     given_name,
@@ -594,6 +709,7 @@ FROM stg_drivers s
 ON CONFLICT (driver_ref) DO NOTHING;
 
 -- Circuitos 
+\echo 'Inserindo circuitos...'
 INSERT INTO circuits (
     circuit_ref,
     name,
@@ -624,6 +740,7 @@ ON CONFLICT (circuit_ref) DO NOTHING;
 -- Todas as FKs são resolvidas via JOINs com tabelas de referência
 
 -- Corridas (tabela central do modelo F1)
+\echo 'Inserindo corridas...'
 INSERT INTO races (
     race_ref,
     season_id,
@@ -676,6 +793,7 @@ JOIN constructors c
 ON CONFLICT (race_id, driver_id) DO NOTHING;
 
 -- Resultados das corridas (dados detalhados de cada piloto em cada corrida)
+\echo 'Inserindo resultados das corridas...'
 INSERT INTO results (
     race_id,
     driver_id,
@@ -723,6 +841,8 @@ ON CONFLICT (race_id, driver_id) DO NOTHING;
 
 -- Etapa 1: Preparar tabela temporária com referências resolvidas (IDs numéricos)
 -- JOIN com seasons e drivers para obter IDs em vez de códigos textuais
+
+\echo 'Preparando dados de driver standings resolvidos...'
 CREATE TEMP TABLE tmp_driver_standings_resolved AS
 SELECT
     s.load_id,          -- Para ordenação consistente
@@ -763,6 +883,7 @@ BEGIN
 END $$;
 
 -- Preparar dados de constructor standings resolvidos
+\echo 'Preparando dados de constructor standings resolvidos...'
 CREATE TEMP TABLE tmp_constructor_standings_resolved AS
 SELECT
     s.load_id,
@@ -779,6 +900,7 @@ JOIN constructors c
     ON c.constructor_ref = s.constructor_id;
 
 -- Processar constructor standings sequencialmente
+\echo 'Processando constructor standings...'
 DO $$
 DECLARE
     rec RECORD;
