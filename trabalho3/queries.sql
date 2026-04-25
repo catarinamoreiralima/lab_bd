@@ -30,16 +30,28 @@ LIMIT 1;
 
 SELECT
     co.country_name                      AS country,
+
+    -- DISTINCT evita duplicar cidades por múltiplos aeroportos
     COUNT(DISTINCT ci.city_id)           AS city_count,
     COUNT(DISTINCT a.airport_id)         AS total_airports
 FROM countries co
-JOIN cities ci        ON ci.country_id  = co.country_id
-LEFT JOIN airports a  ON a.city_id      = ci.city_id
+
+-- Todas as cidades do país
+JOIN cities ci
+ON ci.country_id = co.country_id
+
+-- LEFT JOIN mantém cidades mesmo sem aeroporto
+LEFT JOIN airports a
+ON a.city_id = ci.city_id
+
+-- Apenas países que aparecem em circuitos com corridas
 WHERE co.country_id IN (
     SELECT DISTINCT ci2.country_id
-    FROM races    ra
-    JOIN circuits circ ON circ.circuit_id    = ra.circuit_id
-    JOIN cities   ci2  ON ci2.city_id        = circ.circuit_city_id
+    FROM races ra
+    JOIN circuits circ
+        ON circ.circuit_id = ra.circuit_id
+    JOIN cities ci2
+        ON ci2.city_id = circ.circuit_city_id
 )
 GROUP BY co.country_id, co.country_name
 ORDER BY co.country_name;
