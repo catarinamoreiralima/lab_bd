@@ -1,4 +1,5 @@
 -- Função Nome_Nacionalidade
+-- Função Nome_Nacionalidade
 CREATE OR REPLACE FUNCTION Nome_Nacionalidade(nome_escuderia TEXT)
 RETURNS TEXT AS $$
 DECLARE
@@ -8,6 +9,11 @@ BEGIN
     FROM constructors c
     JOIN countries co ON c.country_id = co.id
     WHERE c.name = nome_escuderia;
+
+	IF NOT FOUND THEN
+        RAISE NOTICE 'Escuderia "%" não encontrada.', nome_escuderia;
+        RETURN NULL;
+    END IF;
     
     RETURN v_nacionalidade;
 END;
