@@ -20,6 +20,8 @@ BEGIN
         LOOP
             RAISE NOTICE 'Nome: %, População: %, País: %', v_cidade."name", v_cidade.population, v_cidade.country_name;
         END LOOP;
+    ELSE
+        RAISE NOTICE 'Nenhuma cidade encontrada com o nome: %', cidade_nome;
     END IF;
 END;
 $$ LANGUAGE PLPgSQL;
