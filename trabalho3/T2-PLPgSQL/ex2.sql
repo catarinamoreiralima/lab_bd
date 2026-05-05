@@ -26,5 +26,7 @@ SELECT Pilotos_Nacionalidade('Brazilian');
 
 SELECT Pilotos_Nacionalidade('Chilean');
 
+SELECT Pilotos_Nacionalidade('Egyptian');
+
 -- Testando nacionalidade que não existe
 SELECT Pilotos_Nacionalidade('USPian');
