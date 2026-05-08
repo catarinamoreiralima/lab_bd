@@ -562,9 +562,6 @@ WHERE EXISTS (
       AND c2.latitude IS NOT NULL
       AND c2.longitude IS NOT NULL
       
-      /* -- filtro rápido - eliminando cidades com diferença de coordenadas maior que 0.1 grau (aprox. 11km), para reduzir o número de comparações mais complexas
-      AND ABS(c1.latitude - c2.latitude) < 0.1
-      AND ABS(c1.longitude - c2.longitude) < 0.1 */
       
       --  distância real (< 10 km haversine)
       AND (
@@ -576,7 +573,7 @@ WHERE EXISTS (
       ) < 10
       
       -- similaridade de nome (pode ter uma similaridade menor devido ao filtro anterior que limita a distancia a 10km)
-      AND similarity(c1.name_normalized, c2.name_normalized) > 0.40
+      AND similarity(c1.name_normalized, c2.name_normalized) > 0.45
       
       -- regra de registro melhor -> manter o mais recentemente modificado ou com maior população
       AND (
