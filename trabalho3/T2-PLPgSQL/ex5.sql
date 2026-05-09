@@ -55,3 +55,10 @@ BEGIN
     CLOSE cur_paises;
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- TESTE DA FUNÇÃO
+\echo total de países retornados:
+SELECT count(*) FROM Pais_Continente();
+\echo 10 primeiros países retornados:
+SELECT * FROM Pais_Continente() LIMIT 10;

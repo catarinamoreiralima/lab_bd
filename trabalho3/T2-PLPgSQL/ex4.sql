@@ -71,5 +71,19 @@ BEGIN
 
     RETURN total_vitorias;
 
+
+
 END;
 $$ LANGUAGE plpgsql;
+\echo 'Testando a função Numero_vitorias com corredor que existe:'
+\echo 'Número de vitórias de Lewis Hamilton: '
+SELECT Numero_vitorias('Lewis', 'Hamilton');
+\echo 'Número de vitórias de Lewis Hamilton em 2020:'
+SELECT Numero_vitorias('Lewis', 'Hamilton', 2020);
+
+
+\echo 'Testando a função Numero_vitorias com corredor que NÃO existe:'
+\echo 'Número de vitórias de John Doe: '
+SELECT Numero_vitorias('John', 'Doe');
+\echo 'Número de vitórias de John Doe em 2020:'
+SELECT Numero_vitorias('John', 'Doe', 2020);
