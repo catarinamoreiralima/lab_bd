@@ -12,16 +12,6 @@ CREATE TABLE Airports_Audit (
     usuario_bd  TEXT      NOT NULL
 );
 
-select * from Airports_Audit aa
-
-SELECT * FROM cities c WHERE c."name" = 'Amsterdam'
-
-select * from airports a where a.id='78748'
-
-select * from cities c 
-
-select * from airport_types t 
-
 -- ---- Passo 2: Função de trigger ----------------------------
 CREATE OR REPLACE FUNCTION AuditaAeroporto()
 RETURNS TRIGGER AS $$
