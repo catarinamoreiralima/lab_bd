@@ -107,3 +107,5 @@ VALUES
 -- VERIFICAÇÃO DOS TESTES
 -- -------------------------------------------------------
 SELECT * FROM Airports_Audit ORDER BY audit_id;
+
+
