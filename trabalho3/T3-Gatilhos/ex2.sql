@@ -156,7 +156,7 @@ INSERT INTO qualifying (
 )
 VALUES (
     1,
-    1,
+    2,
     1,
     50,
     '1:21.000',
