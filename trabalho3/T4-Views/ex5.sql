@@ -15,7 +15,7 @@ WHERE a.id IN (SELECT id FROM Problemas_aeroportos);
 -- ============================================================
 
 \echo '========================================================='
-\echo 'TESTE 1 - Aeroportos a corrigir (city_id deve ser NULL)'
+\echo 'TESTE 1 - Aeroportos a corrigir'
 \echo '========================================================='
 
 SELECT * FROM Correcao_aeroportos ORDER BY id;
@@ -50,19 +50,19 @@ WHERE airports.id = cidade_mais_proxima.airport_id;
 -- ============================================================
 
 \echo '========================================================='
-\echo 'TESTE 3 — Aeroportos que ainda nao tem cidade vinculada (devem ter saido de Aeroportos_sem_cidades)'
+\echo 'TESTE 3 — Aeroportos que ainda nao tem cidade vinculada'
 \echo '========================================================='
 
 SELECT * FROM Aeroportos_sem_cidades LIMIT 10;
 
 \echo '========================================================='
-\echo 'TESTE 4 — Problemas_aeroportos apos correcao (deve estar vazia ou reduzida)'
+\echo 'TESTE 4 — Problemas_aeroportos apos correcao'
 \echo '========================================================='
 
 SELECT COUNT(*) AS restantes FROM Problemas_aeroportos;
 
 \echo '========================================================='
-\echo 'TESTE 5 — Correcao_aeroportos apos UPDATE (city_id nao deve ser mais NULL)'
+\echo 'TESTE 5 — Correcao_aeroportos apos UPDATE'
 \echo '========================================================='
 
 SELECT * FROM Correcao_aeroportos ORDER BY id;
